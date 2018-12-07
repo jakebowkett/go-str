@@ -12,8 +12,9 @@ func TestLen(t *testing.T) {
 	}{
 		{5, "Hello"},
 		{2, "世界"},
-		{1, "💩"},   // poop emoji
-		{3, "💩💩💩"}, // poop emoji
+		{1, "💩"},            // poop emoji
+		{3, "💩💩💩"},          // poop emoji
+		{10, "💩💩世💩 💩💩l,\n"}, // poop emoji
 		{0, ""},
 	}
 
@@ -173,6 +174,8 @@ func TestWords(t *testing.T) {
 		s    string
 		want []string
 	}{
+		{"either/or", []string{"either", "or"}},
+		{"either/\nor", []string{"either", "or"}},
 		{`"here's an em—dash"`, []string{"here's", "an", "em", "dash"}},
 		{`"here's some dialogue!"`, []string{"here's", "some", "dialogue"}},
 		{"it's grammar!", []string{"it's", "grammar"}},
