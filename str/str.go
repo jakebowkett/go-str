@@ -19,11 +19,11 @@ func PadLeft(s string, padChar rune, length int) string {
 	if diff <= 0 {
 		return s
 	}
-	return s + strings.Repeat(string(padChar), diff)
+	return strings.Repeat(string(padChar), diff) + s
 }
 
 /*
-PadLeft suffixes s with padChar until s contains length number
+PadRight suffixes s with padChar until s contains length number
 of characters.
 */
 func PadRight(s string, padChar rune, length int) string {
@@ -31,22 +31,22 @@ func PadRight(s string, padChar rune, length int) string {
 	if diff <= 0 {
 		return s
 	}
-	return strings.Repeat(string(padChar), diff) + s
+	return s + strings.Repeat(string(padChar), diff)
 }
 
 /*
 PadToLongest suffixes each string in ss with padChar until it
 contains as many characters as the longest string in ss.
 */
-func PadToLongest(ss []string, padChar rune) {
+func PadToLongest(ss []string, padChar rune) []string {
 	var longest int
-	for i, _ := range ss {
-		length := len([]rune(s[i]))
+	for i := range ss {
+		length := len([]rune(ss[i]))
 		if length > longest {
 			longest = length
 		}
 	}
-	for i, _ := range ss {
+	for i := range ss {
 		diff := longest - len([]rune(ss[i]))
 		ss[i] += strings.Repeat(string(padChar), diff)
 	}
@@ -95,6 +95,21 @@ the resulting slice are all lowercase.
 */
 func CharSetFold(s string) []string {
 	return makeSet(strings.Split(s, ""), true)
+}
+
+/*
+CharsByOccurrence returns a slice of Occurrence where each index
+represents a single character and the number of times it appears in s.
+The slice is ordered from most frequent to least frequent but no
+other guarantees on order are made beyond that.
+
+If fold is set to true characters of different cases will be considered
+equal and all entries in the resulting slice will be in lowercase.
+For example, "h" and "H" will each count towards an occurrence of the
+single character, "h".
+*/
+func CharsByOccurrence(s string, fold bool) []Occurrence {
+	return occurrences(strings.Split(s, ""), fold)
 }
 
 func makeSet(ss []string, fold bool) []string {
@@ -170,8 +185,16 @@ In addition, grammatical marks adjacent to word boundaries are
 omitted. Grammatical marks are defined as one of the following:
 !?,.'"[]()*~{}:;-<>+=|%&@#$^\`
 
-	// ww is []string{"Here's", "a", "sentence", "said", "the", "narrator", "programmer"}
 	ww := Words(`"Here's a sentence," said the narrator/programmer.`)
+	// ww is []string{
+	// 	"Here's",
+	// 	"a",
+	// 	"sentence",
+	// 	"said",
+	// 	"the",
+	// 	"narrator",
+	// 	"programmer",
+	// }
 
 */
 func Words(s string) []string {
@@ -208,75 +231,6 @@ func Words(s string) []string {
 }
 
 /*
-WordSet is the same as Words but removes duplicates from its results.
-Words will appear in order of their first appearance in s.
-
-See Words for what a word is in this context.
-*/
-func WordSet(s string) []string {
-	return makeSet(Words(s), false)
-}
-
-/*
-WordSetFold is the same as WordSet except it considers characters
-of different cases to be duplicates. For example, the words "hello",
-"Hello", and "hELlo" would all be considered equal. WordSetFold will
-return all words as lowercase. Words will appear in order of their
-first appearance in s.
-
-See Words for what a word is in this context.
-*/
-func WordSetFold(s string) []string {
-	return makeSet(Words(s), true)
-}
-
-type Word struct {
-	Occurence int
-	Word      string
-}
-
-type wordMap []Word
-
-func (wm wordMap) Len() int {
-	return len(wm)
-}
-
-func (wm wordMap) Less(i, j int) bool {
-	return wm[i].Occurence > wm[j].Occurence
-}
-
-func (wm wordMap) Swap(i, j int) {
-	wm[i], wm[j] = wm[j], wm[i]
-}
-
-/*
-WordOccurence returns a slice of Word where each index represents
-a single word and the number of times it appears in s. The slice
-is ordered from most frequent to least frequent but beyond that
-words are not guaranteed to be in the order they appeared in s.
-
-See Words for what a word is in this context.
-*/
-func WordOccurence(s string) []Word {
-
-	ww := Words(s)
-
-	occurence := make(map[string]int, len(ww))
-	for _, w := range ww {
-		occurence[w]++
-	}
-
-	wm := make(wordMap, 0, len(ww))
-	for w, o := range occurence {
-		wm = append(wm, Word{Occurence: o, Word: w})
-	}
-
-	sort.Sort(wm)
-
-	return wm
-}
-
-/*
 WordCount returns the number of words in s.
 
 See Words for what a word is in this context.
@@ -304,11 +258,91 @@ func WordCount(s string) int {
 	return count
 }
 
+/*
+WordSet is the same as Words but removes duplicates from its results.
+Words will appear in order of their first appearance in s.
+
+See Words for what a word is in this context.
+*/
+func WordSet(s string) []string {
+	return makeSet(Words(s), false)
+}
+
+/*
+WordSetFold is the same as WordSet except it considers characters
+of different cases to be duplicates. For example, the words "hello",
+"Hello", and "hELlo" would all be considered equal. WordSetFold will
+return all words as lowercase. Words will appear in order of their
+first appearance in s.
+
+See Words for what a word is in this context.
+*/
+func WordSetFold(s string) []string {
+	return makeSet(Words(s), true)
+}
+
+/*
+Occurrence contains two fields: SubStr is a substring that occurred
+in a string while N is the number of times it appeared in said string.
+*/
+type Occurrence struct {
+	SubStr string
+	N      int
+}
+
+type occMap []Occurrence
+
+func (om occMap) Len() int {
+	return len(om)
+}
+
+func (om occMap) Less(i, j int) bool {
+	return om[i].N > om[j].N
+}
+
+func (om occMap) Swap(i, j int) {
+	om[i], om[j] = om[j], om[i]
+}
+
+/*
+WordsByOccurrence returns a slice of Occurence where each index
+represents a single word and the number of times it appears in s. The
+slice is ordered from most frequent to least frequent but beyond that
+words are not guaranteed to be in the order they appeared in s.
+
+If fold is set to true words of different cases will be considered
+equal and all entries in the resulting slice will be in lowercase.
+For example, "hello" and "Hello" will each count towards an occurrence
+of the single word, "hello".
+
+See Words for what a word is in this context.
+*/
+func WordsByOccurrence(s string, fold bool) []Occurrence {
+	return occurrences(Words(s), fold)
+}
+
+func occurrences(ss []string, fold bool) []Occurrence {
+
+	occurrences := make(map[string]int, len(ss))
+	for _, s := range ss {
+		if fold {
+			s = strings.ToLower(s)
+		}
+		occurrences[s]++
+	}
+
+	om := make(occMap, 0, len(occurrences))
+	for s, o := range occurrences {
+		om = append(om, Occurrence{SubStr: s, N: o})
+	}
+
+	sort.Sort(om)
+
+	return om
+}
+
 func grammarOnBoundary(cc []string, i int, precededByBoundary bool) bool {
 	for {
-		if i == len(cc) {
-			return true
-		}
 		if !isGrammar(cc[i]) {
 			return false
 		}

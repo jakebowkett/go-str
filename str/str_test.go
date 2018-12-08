@@ -4,6 +4,114 @@ import (
 	"testing"
 )
 
+func TestPadLeft(t *testing.T) {
+
+	cases := []struct {
+		n    int
+		pad  rune
+		s    string
+		want string
+	}{
+		{5, ' ', "Hello", "Hello"},
+		{10, ' ', "Hello", "     Hello"},
+		{3, ' ', "Hello", "Hello"},
+		{-1, ' ', "Hello", "Hello"},
+		{3, ' ', "", "   "},
+		{5, ' ', "世界", "   世界"},
+		{5, ' ', "💩💩💩", "  💩💩💩"}, // poop emoji
+		{5, '世', "hi", "世世世hi"},
+	}
+
+	for _, c := range cases {
+		if got := PadLeft(c.s, c.pad, c.n); got != c.want {
+			t.Errorf("PadLeft(%q, %q, %d) return %q, wanted %q.", c.s, c.pad, c.n, got, c.want)
+		}
+	}
+}
+
+func TestPadRight(t *testing.T) {
+
+	cases := []struct {
+		n    int
+		pad  rune
+		s    string
+		want string
+	}{
+		{5, ' ', "Hello", "Hello"},
+		{10, ' ', "Hello", "Hello     "},
+		{3, ' ', "Hello", "Hello"},
+		{-1, ' ', "Hello", "Hello"},
+		{3, ' ', "", "   "},
+		{5, ' ', "世界", "世界   "},
+		{5, ' ', "💩💩💩", "💩💩💩  "}, // poop emoji
+		{5, '世', "hi", "hi世世世"},
+	}
+
+	for _, c := range cases {
+		if got := PadRight(c.s, c.pad, c.n); got != c.want {
+			t.Errorf("PadRight(%q, %q, %d) return %q, wanted %q.", c.s, c.pad, c.n, got, c.want)
+		}
+	}
+}
+
+func TestPadToLongest(t *testing.T) {
+
+	cases := []struct {
+		pad  rune
+		ss   []string
+		want []string
+	}{
+		{
+			' ',
+			[]string{
+				"hi",
+				"   ",
+				"世界",
+				"💩💩💩",
+				"世界世界世界",
+				"\n",
+			},
+			[]string{
+				"hi    ",
+				"      ",
+				"世界    ",
+				"💩💩💩   ",
+				"世界世界世界",
+				"\n     ",
+			},
+		},
+		{
+			'界',
+			[]string{
+				"hi",
+				"   ",
+				"世界",
+				"💩💩💩",
+				"世界世界世界",
+				"\n",
+			},
+			[]string{
+				"hi界界界界",
+				"   界界界",
+				"世界界界界界",
+				"💩💩💩界界界",
+				"世界世界世界",
+				"\n界界界界界",
+			},
+		},
+	}
+
+	for _, c := range cases {
+		if got := PadToLongest(c.ss, c.pad); !strSliceEqual(got, c.want) {
+			t.Errorf(
+				"PadToLongest(ss, %q)\n"+
+					"    return %q\n"+
+					"    wanted %q.",
+				c.pad, got, c.want)
+		}
+	}
+}
+
 func TestLen(t *testing.T) {
 
 	cases := []struct {
@@ -97,11 +205,32 @@ func TestCharSet(t *testing.T) {
 	}
 }
 
+func TestCharSetFold(t *testing.T) {
+
+	cases := []struct {
+		s    string
+		want []string
+	}{
+		{"Hello hi", []string{"h", "e", "l", "o", " ", "i"}},
+		{"世界世界", []string{"世", "界"}},
+		{"世a界ASG世f界", []string{"世", "a", "界", "s", "g", "f"}},
+		{"💩💩💩", []string{"💩"}}, // poop emoji
+		{"\n\n", []string{"\n"}},
+		{"", []string{}},
+	}
+
+	for _, c := range cases {
+		if got := CharSetFold(c.s); !strSliceEqual(got, c.want) {
+			t.Errorf("CharSetFold(%q) return %v, wanted %v.", c.s, got, c.want)
+		}
+	}
+}
+
 func strSliceEqual(s1, s2 []string) bool {
 	if len(s1) != len(s2) {
 		return false
 	}
-	for i, _ := range s1 {
+	for i := range s1 {
 		if s1[i] != s2[i] {
 			return false
 		}
@@ -175,6 +304,7 @@ func TestWords(t *testing.T) {
 		s    string
 		want []string
 	}{
+		{"grammar at end,,)", []string{"grammar", "at", "end"}},
 		{"    Status: happy", []string{"Status", "happy"}},
 		{"Status: happy", []string{"Status", "happy"}},
 		{"Status::(happy)", []string{"Status::(happy"}},
@@ -196,6 +326,80 @@ func TestWords(t *testing.T) {
 	for _, c := range cases {
 		if got := Words(c.s); !strSliceEqual(got, c.want) {
 			t.Errorf("Words(%q) return %v, wanted %v.", c.s, got, c.want)
+		}
+	}
+}
+
+func TestWordSet(t *testing.T) {
+
+	cases := []struct {
+		s    string
+		want []string
+	}{
+		{
+			"I'm really, really tired of thinking of ways to test shit.",
+			[]string{
+				"I'm",
+				"really",
+				"tired",
+				"of",
+				"thinking",
+				"ways",
+				"to",
+				"test",
+				"shit",
+			},
+		},
+		{
+			"REALLY, Really, really... tired.",
+			[]string{
+				"REALLY",
+				"Really",
+				"really",
+				"tired",
+			},
+		},
+	}
+
+	for _, c := range cases {
+		if got := WordSet(c.s); !strSliceEqual(got, c.want) {
+			t.Errorf("WordSet(%q) return %v, wanted %v.", c.s, got, c.want)
+		}
+	}
+}
+
+func TestWordSetFold(t *testing.T) {
+
+	cases := []struct {
+		s    string
+		want []string
+	}{
+		{
+			"I'm really, really tired of thinking of ways to test shit.",
+			[]string{
+				"i'm",
+				"really",
+				"tired",
+				"of",
+				"thinking",
+				"ways",
+				"to",
+				"test",
+				"shit",
+			},
+		},
+		{
+			"REALLY, Really, really... tired.",
+			[]string{
+				"really",
+				"tired",
+			},
+		},
+	}
+
+	for _, c := range cases {
+		if got := WordSetFold(c.s); !strSliceEqual(got, c.want) {
+			t.Errorf("WordSetFold(%q) return %v, wanted %v.", c.s, got, c.want)
 		}
 	}
 }
@@ -228,4 +432,188 @@ func TestWordCount(t *testing.T) {
 			t.Errorf("WordCount(%q) return %d, wanted %d.", c.s, got, c.want)
 		}
 	}
+}
+
+func TestWordsByOccurrence(t *testing.T) {
+
+	cases := []struct {
+		s    string
+		fold bool
+		want []Occurrence
+	}{
+		{
+			"grammar grammar at end,,)",
+			false,
+			[]Occurrence{
+				{SubStr: "grammar", N: 2},
+				{SubStr: "at", N: 1},
+				{SubStr: "end", N: 1},
+			},
+		},
+		{
+			`"Here's the dialogue," said the narrator/programmer to the listener!! And here's this.`,
+			false,
+			[]Occurrence{
+				{SubStr: "the", N: 3},
+				{SubStr: "Here's", N: 1},
+				{SubStr: "dialogue", N: 1},
+				{SubStr: "said", N: 1},
+				{SubStr: "narrator", N: 1},
+				{SubStr: "programmer", N: 1},
+				{SubStr: "to", N: 1},
+				{SubStr: "listener", N: 1},
+				{SubStr: "And", N: 1},
+				{SubStr: "here's", N: 1},
+				{SubStr: "this", N: 1},
+			},
+		},
+		{
+			`"Here's the dialogue," said the narrator/programmer to the listener!! And here's this.`,
+			true,
+			[]Occurrence{
+				{SubStr: "the", N: 3},
+				{SubStr: "here's", N: 2},
+				{SubStr: "dialogue", N: 1},
+				{SubStr: "said", N: 1},
+				{SubStr: "narrator", N: 1},
+				{SubStr: "programmer", N: 1},
+				{SubStr: "to", N: 1},
+				{SubStr: "listener", N: 1},
+				{SubStr: "and", N: 1},
+				{SubStr: "this", N: 1},
+			},
+		},
+		{
+			"thing, Thing, and THING",
+			true,
+			[]Occurrence{
+				{SubStr: "thing", N: 3},
+				{SubStr: "and", N: 1},
+			},
+		},
+	}
+
+	for _, c := range cases {
+		if got := WordsByOccurrence(c.s, c.fold); !occSliceCorrect(got, c.want) {
+			t.Errorf(
+				"WordsByOccurrence(%q)\n"+
+					"    return %v\n"+
+					"    wanted %v.",
+				c.s, got, c.want)
+		}
+	}
+}
+
+func TestCharsByOccurrence(t *testing.T) {
+
+	cases := []struct {
+		s    string
+		fold bool
+		want []Occurrence
+	}{
+		{
+			"Hello there!",
+			false,
+			[]Occurrence{
+				{SubStr: "e", N: 3},
+				{SubStr: "l", N: 2},
+				{SubStr: "H", N: 1},
+				{SubStr: "o", N: 1},
+				{SubStr: " ", N: 1},
+				{SubStr: "t", N: 1},
+				{SubStr: "h", N: 1},
+				{SubStr: "r", N: 1},
+				{SubStr: "!", N: 1},
+			},
+		},
+		{
+			"Hello there!",
+			true,
+			[]Occurrence{
+				{SubStr: "e", N: 3},
+				{SubStr: "l", N: 2},
+				{SubStr: "h", N: 2},
+				{SubStr: "o", N: 1},
+				{SubStr: " ", N: 1},
+				{SubStr: "t", N: 1},
+				{SubStr: "r", N: 1},
+				{SubStr: "!", N: 1},
+			},
+		},
+		{
+			"Hello, 世界! Small 世界.",
+			true,
+			[]Occurrence{
+				{SubStr: "l", N: 4},
+				{SubStr: " ", N: 3},
+				{SubStr: "世", N: 2},
+				{SubStr: "界", N: 2},
+				{SubStr: "h", N: 1},
+				{SubStr: "e", N: 1},
+				{SubStr: "o", N: 1},
+				{SubStr: ",", N: 1},
+				{SubStr: "!", N: 1},
+				{SubStr: "s", N: 1},
+				{SubStr: "m", N: 1},
+				{SubStr: "a", N: 1},
+				{SubStr: ".", N: 1},
+			},
+		},
+	}
+
+	for _, c := range cases {
+		if got := CharsByOccurrence(c.s, c.fold); !occSliceCorrect(got, c.want) {
+			t.Errorf(
+				"CharsByOccurrence(%q)\n"+
+					"    return %v\n"+
+					"    wanted %v.",
+				c.s, got, c.want)
+		}
+	}
+}
+
+func occSliceCorrect(gotOcc, wantOcc []Occurrence) bool {
+
+	if len(gotOcc) != len(wantOcc) {
+		return false
+	}
+	if len(gotOcc) == 0 {
+		return true
+	}
+
+	seen := make(map[string]bool, len(gotOcc))
+	prevN := gotOcc[0].N
+
+	for _, got := range gotOcc {
+
+		// There shouldn't be duplicates.
+		if seen[got.SubStr] {
+			return false
+		}
+		seen[got.SubStr] = true
+
+		// The substring we got should be one
+		// we're expecting.
+		if !inOccSlice(wantOcc, got.SubStr) {
+			return false
+		}
+
+		// Later occurrences shouldn't be more
+		// numerous than previous ones.
+		if got.N > prevN {
+			return false
+		}
+		prevN = got.N
+	}
+
+	return true
+}
+
+func inOccSlice(oo []Occurrence, s string) bool {
+	for _, o := range oo {
+		if o.SubStr == s {
+			return true
+		}
+	}
+	return false
 }
