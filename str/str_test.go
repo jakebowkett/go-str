@@ -33,7 +33,8 @@ func TestChar(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		{-1, "Hello", "", true},
+		{10, "Hello", "", true},
+		{-1, "Hello", "o", false},
 		{0, "Hello", "H", false},
 		{3, "Hello", "l", false},
 		{2, "世界世界", "世", false},
@@ -117,14 +118,14 @@ func TestSlice(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		{1, 0, "Hello", "", true},
+		{1, 0, "Hello", "ello", false},
 		{0, 1, "Hello", "H", false},
 		{1, 4, "Hello", "ell", false},
 		{0, 5, "Hello", "Hello", false},
 		{0, 6, "Hello", "", true},
-		{0, -1, "Hello", "", true},
-		{-1, 0, "Hello", "", true},
-		{-1, -1, "Hello", "", true},
+		{0, -1, "Hello", "Hell", false},
+		{-1, 0, "Hello", "o", false},
+		{-1, -1, "Hello", "", false},
 		{1, 2, "世界", "界", false},
 		{2, 3, "💩💩💩💩💩", "💩", false}, // poop emoji
 		{0, 0, "", "", false},
@@ -140,7 +141,7 @@ func TestSlice(t *testing.T) {
 			}
 			t.Errorf(
 				"Slice(%q, %d, %d)\n"+
-					"    return %q, %s\n"+
+					"    return %q, %v\n"+
 					"    wanted %q, %s.\n",
 				c.s, c.n1, c.n2, got, err, c.want, errStr)
 		}
@@ -174,6 +175,10 @@ func TestWords(t *testing.T) {
 		s    string
 		want []string
 	}{
+		{"    Status: happy", []string{"Status", "happy"}},
+		{"Status: happy", []string{"Status", "happy"}},
+		{"Status::(happy)", []string{"Status::(happy"}},
+		{"ei\nther/or", []string{"ei", "ther", "or"}},
 		{"either/or", []string{"either", "or"}},
 		{"either/\nor", []string{"either", "or"}},
 		{`"here's an em—dash"`, []string{"here's", "an", "em", "dash"}},
@@ -201,6 +206,7 @@ func TestWordCount(t *testing.T) {
 		want int
 		s    string
 	}{
+		{4, `"here's a forward/slash!"`},
 		{4, `"here's an em—dash"`},
 		{3, `"here's some dialogue!"`},
 		{3, "Hello there, friend!"},
@@ -213,7 +219,12 @@ func TestWordCount(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		if got := WordCount(c.s); got != c.want {
+		wordsLen := len(Words(c.s))
+		got := WordCount(c.s)
+		if got != wordsLen {
+			t.Errorf("WordCount(%q) return %d, len(Words(%q)) is %d.", c.s, got, c.s, wordsLen)
+		}
+		if got != c.want {
 			t.Errorf("WordCount(%q) return %d, wanted %d.", c.s, got, c.want)
 		}
 	}
