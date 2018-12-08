@@ -83,18 +83,14 @@ CharSet returns a slice of all the characters (rather than bytes) in
 s, excluding duplicates. If s is an empty string the slice will be
 non-nil and zero length. Characters appear in the same order as they
 do in s.
-*/
-func CharSet(s string) []string {
-	return makeSet(strings.Split(s, ""), false)
-}
 
-/*
-CharSetFold is the same as CharSet except it considers characters of
-different cases equivalent. For example, "a" == "A". The strings in
-the resulting slice are all lowercase.
+If fold is set to true characters of different cases will be considered
+duplicates and condensed into a single lowercase character in the
+resulting slice. For example, if s were "Hi, Hello" the output with
+fold set to true would be []string{"h", "i", ",", " ", "e", "l", "o"}
 */
-func CharSetFold(s string) []string {
-	return makeSet(strings.Split(s, ""), true)
+func CharSet(s string, fold bool) []string {
+	return makeSet(strings.Split(s, ""), fold)
 }
 
 /*
@@ -262,23 +258,15 @@ func WordCount(s string) int {
 WordSet is the same as Words but removes duplicates from its results.
 Words will appear in order of their first appearance in s.
 
-See Words for what a word is in this context.
-*/
-func WordSet(s string) []string {
-	return makeSet(Words(s), false)
-}
-
-/*
-WordSetFold is the same as WordSet except it considers characters
-of different cases to be duplicates. For example, the words "hello",
-"Hello", and "hELlo" would all be considered equal. WordSetFold will
-return all words as lowercase. Words will appear in order of their
-first appearance in s.
+If fold is set to true words of different cases will be considered
+duplicates and condensed into a single lowercase word in the resulting
+slice. For example, if s were "hello, Hello, hELlo there!" the output
+with fold set to true would be []string{"hello", "there"}
 
 See Words for what a word is in this context.
 */
-func WordSetFold(s string) []string {
-	return makeSet(Words(s), true)
+func WordSet(s string, fold bool) []string {
+	return makeSet(Words(s), fold)
 }
 
 /*

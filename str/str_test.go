@@ -188,40 +188,73 @@ func TestChars(t *testing.T) {
 func TestCharSet(t *testing.T) {
 
 	cases := []struct {
+		fold bool
 		s    string
 		want []string
 	}{
-		{"Hello", []string{"H", "e", "l", "o"}},
-		{"世界世界", []string{"世", "界"}},
-		{"💩💩💩", []string{"💩"}}, // poop emoji
-		{"\n\n", []string{"\n"}},
-		{"", []string{}},
+		// Unfolded.
+		{
+			false,
+			"Hello",
+			[]string{"H", "e", "l", "o"},
+		},
+		{
+			false,
+			"世界世界",
+			[]string{"世", "界"},
+		},
+		{
+			false,
+			"💩💩💩",
+			[]string{"💩"}, // poop emoji
+		},
+		{
+			false,
+			"\n\n",
+			[]string{"\n"},
+		},
+		{
+			false,
+			"",
+			[]string{},
+		},
+
+		// Folded.
+		{
+			true,
+			"Hello hi",
+			[]string{"h", "e", "l", "o", " ", "i"},
+		},
+		{
+			true,
+			"世界世界",
+			[]string{"世", "界"},
+		},
+		{
+			true,
+			"世a界ASG世f界",
+			[]string{"世", "a", "界", "s", "g", "f"},
+		},
+		{
+			true,
+			"💩💩💩",
+			[]string{"💩"}, // poop emoji
+		},
+		{
+			true,
+			"\n\n",
+			[]string{"\n"},
+		},
+		{
+			true,
+			"",
+			[]string{},
+		},
 	}
 
 	for _, c := range cases {
-		if got := CharSet(c.s); !strSliceEqual(got, c.want) {
-			t.Errorf("CharSet(%q) return %v, wanted %v.", c.s, got, c.want)
-		}
-	}
-}
-
-func TestCharSetFold(t *testing.T) {
-
-	cases := []struct {
-		s    string
-		want []string
-	}{
-		{"Hello hi", []string{"h", "e", "l", "o", " ", "i"}},
-		{"世界世界", []string{"世", "界"}},
-		{"世a界ASG世f界", []string{"世", "a", "界", "s", "g", "f"}},
-		{"💩💩💩", []string{"💩"}}, // poop emoji
-		{"\n\n", []string{"\n"}},
-		{"", []string{}},
-	}
-
-	for _, c := range cases {
-		if got := CharSetFold(c.s); !strSliceEqual(got, c.want) {
-			t.Errorf("CharSetFold(%q) return %v, wanted %v.", c.s, got, c.want)
+		if got := CharSet(c.s, c.fold); !strSliceEqual(got, c.want) {
+			t.Errorf("CharSet(%q, %v) return %v, wanted %v.", c.s, c.fold, got, c.want)
 		}
 	}
 }
@@ -333,10 +366,14 @@ func TestWords(t *testing.T) {
 func TestWordSet(t *testing.T) {
 
 	cases := []struct {
+		fold bool
 		s    string
 		want []string
 	}{
+
+		// Unfolded
 		{
+			false,
 			"I'm really, really tired of thinking of ways to test shit.",
 			[]string{
 				"I'm",
@@ -351,6 +388,7 @@ func TestWordSet(t *testing.T) {
 			},
 		},
 		{
+			false,
 			"REALLY, Really, really... tired.",
 			[]string{
 				"REALLY",
@@ -359,22 +397,10 @@ func TestWordSet(t *testing.T) {
 				"tired",
 			},
 		},
-	}
 
-	for _, c := range cases {
-		if got := WordSet(c.s); !strSliceEqual(got, c.want) {
-			t.Errorf("WordSet(%q) return %v, wanted %v.", c.s, got, c.want)
-		}
-	}
-}
-
-func TestWordSetFold(t *testing.T) {
-
-	cases := []struct {
-		s    string
-		want []string
-	}{
+		// Folded
 		{
+			true,
 			"I'm really, really tired of thinking of ways to test shit.",
 			[]string{
 				"i'm",
@@ -389,6 +415,7 @@ func TestWordSetFold(t *testing.T) {
 			},
 		},
 		{
+			true,
 			"REALLY, Really, really... tired.",
 			[]string{
 				"really",
@@ -398,8 +425,8 @@ func TestWordSetFold(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		if got := WordSetFold(c.s); !strSliceEqual(got, c.want) {
-			t.Errorf("WordSetFold(%q) return %v, wanted %v.", c.s, got, c.want)
+		if got := WordSet(c.s, c.fold); !strSliceEqual(got, c.want) {
+			t.Errorf("WordSet(%q, %v) return %v, wanted %v.", c.s, c.fold, got, c.want)
 		}
 	}
 }
