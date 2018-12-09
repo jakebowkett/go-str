@@ -329,23 +329,21 @@ func WordSet(s string, fold bool) []string {
 }
 
 /*
-OccMap is an unordered sequence of structs containing the fields
-SubStr and N. They respectively refer to a substring from the source
-string used to produce OccMap and the number of times that substring
-appears in said source string.
-
-OccMap implements sort.Interface — a call to sort.Sort(OccMap)
-will sort the substrings from most frequent to least, though
-no order is guaranteed among substrings with the same number of
-occurrences. To sort from least frequent to most call
-sort.Sort(sort.Reverse(OccMap))
+Occurrences is a pairing of a subtring and an int representing how
+often that substring occurs in the string it was sourced from.
 */
-type OccMap []occurrence
-
-type occurrence struct {
+type Occurrences struct {
 	SubStr string
 	N      int
 }
+
+/*
+OccMap is an unordered sequence of Occurrences. It implements
+sort.Interface and will sort the substrings from most frequent to
+least, though no order is guaranteed among substrings with the
+same number of occurrences.
+*/
+type OccMap []Occurrences
 
 func (om OccMap) Len() int {
 	return len(om)
@@ -387,7 +385,7 @@ func occurrences(ss []string, fold bool) OccMap {
 
 	om := make(OccMap, 0, len(occs))
 	for s, o := range occs {
-		om = append(om, occurrence{SubStr: s, N: o})
+		om = append(om, Occurrences{SubStr: s, N: o})
 	}
 
 	return om
