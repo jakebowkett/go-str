@@ -62,9 +62,18 @@ func Len(s string) int {
 }
 
 /*
-Char returns character n (rather than byte n) in s. An error will
-be returned if n is a negative number or if it exceeds the number
+Char returns character n (rather than byte n) in s. Negative values
+for n are treated as an offset from the end of the string. An error
+will be returned if the absolute value of n is greater than the number
 of characters in s.
+
+	s, _ := Char("Hello", 0)   // "H"
+	s, _ := Char("Hello", 1)   // "e"
+	s, _ := Char("Hello", -1)  // "o"
+	s, _ := Char("世界", -1)   // "界"
+	s, _ := Char("Hello", 8)   // Error; out of bounds.
+	s, _ := Char("Hello", -7)  // Error; out of bounds.
+
 */
 func Char(s string, i int) (string, error) {
 	return Slice(s, i, i+1)
@@ -132,10 +141,19 @@ Slice returns a substring of s. The start and end parameters refer
 to character indices rather than byte indices. Both start and end
 may be negative, in which case they refer to the offset from the
 end of s. If start is greater than end it will wrap to the beginning
-of s.
+of s and continue until end.
 
 Returns an error if start or end have an absolute value greater
 than the number of characters in s.
+
+	s, _ := Slice("Hello", 1, 2)     // "e"
+	s, _ := Slice("Hello", -4, -1)   // "ell"
+	s, _ := Slice("Hello", -1, 0)    // "o"
+	s, _ := Slice("Hello", -1, 2)    // "oHe"
+	s, _ := Slice("世界地球風", 1, 3) // "界地"
+	s, _ := Slice("Hello", 2, 8)     // Error; out of bounds.
+	s, _ := Slice("Hello", -6, 2)    // Error; out of bounds.
+
 */
 func Slice(s string, start, end int) (string, error) {
 	cc := []rune(s)
@@ -179,7 +197,11 @@ their appearance. Word boundaries include any space character
 (as defined by Unicode), forward slashes, endashes, and emdashes.
 In addition, grammatical marks adjacent to word boundaries are
 omitted. Grammatical marks are defined as one of the following:
-!?,.'"[]()*~{}:;-<>+=|%&@#$^\`
+
+	!?,.'"[]()*~{}:;-<>+=|%&@#$^\`
+
+Grammar within a word, such as apostrophes indicating contractions,
+are retained.
 
 	ww := Words(`"Here's a sentence," said the narrator/programmer.`)
 	// ww is []string{
