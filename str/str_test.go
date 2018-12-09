@@ -1,6 +1,7 @@
 package str
 
 import (
+	"sort"
 	"testing"
 )
 
@@ -466,21 +467,24 @@ func TestWordsByOccurrence(t *testing.T) {
 	cases := []struct {
 		s    string
 		fold bool
-		want []Occurrence
+		sort bool
+		want OccMap
 	}{
 		{
-			"grammar grammar at end,,)",
-			false,
-			[]Occurrence{
+			s:    "grammar grammar at end,,)",
+			fold: false,
+			sort: true,
+			want: OccMap{
 				{SubStr: "grammar", N: 2},
 				{SubStr: "at", N: 1},
 				{SubStr: "end", N: 1},
 			},
 		},
 		{
-			`"Here's the dialogue," said the narrator/programmer to the listener!! And here's this.`,
-			false,
-			[]Occurrence{
+			s:    `"Here's the dialogue," said the narrator/programmer to the listener!! And here's this.`,
+			fold: false,
+			sort: true,
+			want: OccMap{
 				{SubStr: "the", N: 3},
 				{SubStr: "Here's", N: 1},
 				{SubStr: "dialogue", N: 1},
@@ -495,9 +499,10 @@ func TestWordsByOccurrence(t *testing.T) {
 			},
 		},
 		{
-			`"Here's the dialogue," said the narrator/programmer to the listener!! And here's this.`,
-			true,
-			[]Occurrence{
+			s:    `"Here's the dialogue," said the narrator/programmer to the listener!! And here's this.`,
+			fold: true,
+			sort: true,
+			want: OccMap{
 				{SubStr: "the", N: 3},
 				{SubStr: "here's", N: 2},
 				{SubStr: "dialogue", N: 1},
@@ -511,9 +516,10 @@ func TestWordsByOccurrence(t *testing.T) {
 			},
 		},
 		{
-			"thing, Thing, and THING",
-			true,
-			[]Occurrence{
+			s:    "thing, Thing, and THING",
+			fold: true,
+			sort: true,
+			want: OccMap{
 				{SubStr: "thing", N: 3},
 				{SubStr: "and", N: 1},
 			},
@@ -521,11 +527,15 @@ func TestWordsByOccurrence(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		if got := WordsByOccurrence(c.s, c.fold); !occSliceCorrect(got, c.want) {
+		got := WordsByOccurrence(c.s, c.fold)
+		if c.sort {
+			sort.Sort(got)
+		}
+		if !occSliceCorrect(got, c.want) {
 			t.Errorf(
 				"WordsByOccurrence(%q)\n"+
 					"    return %v\n"+
-					"    wanted %v.",
+					"    wanted %v",
 				c.s, got, c.want)
 		}
 	}
@@ -536,12 +546,14 @@ func TestCharsByOccurrence(t *testing.T) {
 	cases := []struct {
 		s    string
 		fold bool
-		want []Occurrence
+		sort bool
+		want OccMap
 	}{
 		{
-			"Hello there!",
-			false,
-			[]Occurrence{
+			s:    "Hello there!",
+			fold: false,
+			sort: true,
+			want: OccMap{
 				{SubStr: "e", N: 3},
 				{SubStr: "l", N: 2},
 				{SubStr: "H", N: 1},
@@ -554,9 +566,10 @@ func TestCharsByOccurrence(t *testing.T) {
 			},
 		},
 		{
-			"Hello there!",
-			true,
-			[]Occurrence{
+			s:    "Hello there!",
+			fold: true,
+			sort: true,
+			want: OccMap{
 				{SubStr: "e", N: 3},
 				{SubStr: "l", N: 2},
 				{SubStr: "h", N: 2},
@@ -568,9 +581,10 @@ func TestCharsByOccurrence(t *testing.T) {
 			},
 		},
 		{
-			"Hello, 世界! Small 世界.",
-			true,
-			[]Occurrence{
+			s:    "Hello, 世界! Small 世界.",
+			fold: true,
+			sort: true,
+			want: OccMap{
 				{SubStr: "l", N: 4},
 				{SubStr: " ", N: 3},
 				{SubStr: "世", N: 2},
@@ -589,17 +603,21 @@ func TestCharsByOccurrence(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		if got := CharsByOccurrence(c.s, c.fold); !occSliceCorrect(got, c.want) {
+		got := CharsByOccurrence(c.s, c.fold)
+		if c.sort {
+			sort.Sort(got)
+		}
+		if !occSliceCorrect(got, c.want) {
 			t.Errorf(
 				"CharsByOccurrence(%q)\n"+
 					"    return %v\n"+
-					"    wanted %v.",
+					"    wanted %v",
 				c.s, got, c.want)
 		}
 	}
 }
 
-func occSliceCorrect(gotOcc, wantOcc []Occurrence) bool {
+func occSliceCorrect(gotOcc, wantOcc OccMap) bool {
 
 	if len(gotOcc) != len(wantOcc) {
 		return false
@@ -636,8 +654,8 @@ func occSliceCorrect(gotOcc, wantOcc []Occurrence) bool {
 	return true
 }
 
-func inOccSlice(oo []Occurrence, s string) bool {
-	for _, o := range oo {
+func inOccSlice(om OccMap, s string) bool {
+	for _, o := range om {
 		if o.SubStr == s {
 			return true
 		}
