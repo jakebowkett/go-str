@@ -10,54 +10,69 @@ import (
 )
 
 /*
-PadLeft prefixes s with padChar until s contains length number
-of characters.
-*/
-func PadLeft(s string, padChar rune, length int) string {
-	diff := length - len([]rune(s))
-	if diff <= 0 {
-		return s
-	}
-	return strings.Repeat(string(padChar), diff) + s
-}
-
-/*
-PadRight suffixes s with padChar until s contains length number
-of characters.
-*/
-func PadRight(s string, padChar rune, length int) string {
-	diff := length - len([]rune(s))
-	if diff <= 0 {
-		return s
-	}
-	return s + strings.Repeat(string(padChar), diff)
-}
-
-/*
-PadToLongest suffixes each string in ss with padChar until it
-contains as many characters as the longest string in ss.
-*/
-func PadToLongest(ss []string, padChar rune) []string {
-	var longest int
-	for i := range ss {
-		length := len([]rune(ss[i]))
-		if length > longest {
-			longest = length
-		}
-	}
-	for i := range ss {
-		diff := longest - len([]rune(ss[i]))
-		ss[i] += strings.Repeat(string(padChar), diff)
-	}
-	return ss
-}
-
-/*
 Len returns the number of characters in a string rather
 than the number of bytes.
 */
 func Len(s string) int {
 	return len([]rune(s))
+}
+
+/*
+Nth returns the character index of the nth instance of
+subStr in s. If n negative it will search from the end
+of the string. Nth will return -1 if the nth instance
+of subStr cannot be found or if n is 0.
+*/
+func Nth(s, subStr string, n int) int {
+	if n == 0 {
+		return -1
+	}
+	if Len(subStr) > Len(s) {
+		return -1
+	}
+	if n < 0 {
+		return nthLast(s, subStr, -n)
+	}
+	return nthFirst(s, subStr, n)
+}
+
+func nthFirst(s, subStr string, n int) int {
+
+	// i below is the byte position so we record
+	// what character we're on.
+	charPos := -1
+	seen := 0
+
+	for i, _ := range s {
+		charPos++
+		if i+len(subStr) > len(s) {
+			return -1
+		}
+		if string(s[i:i+len(subStr)]) == subStr {
+			seen++
+			if seen == n {
+				return charPos
+			}
+		}
+	}
+	return -1
+}
+
+func nthLast(s, subStr string, n int) int {
+
+	rr := []rune(s)
+	seen := 0
+	subLen := Len(subStr) // char len not byte len
+
+	for i := len(rr) - subLen - 1; i >= 0; i-- {
+		if string(rr[i:i+subLen]) == subStr {
+			seen++
+			if seen == n {
+				return i
+			}
+		}
+	}
+	return -1
 }
 
 /*
@@ -187,6 +202,49 @@ func Capitalise(s string) string {
 		return strings.ToUpper(s)
 	}
 	return strings.ToUpper(string(rr[0])) + string(rr[1:])
+}
+
+/*
+PadLeft prefixes s with padChar until s contains length number
+of characters.
+*/
+func PadLeft(s string, padChar rune, length int) string {
+	diff := length - len([]rune(s))
+	if diff <= 0 {
+		return s
+	}
+	return strings.Repeat(string(padChar), diff) + s
+}
+
+/*
+PadRight suffixes s with padChar until s contains length number
+of characters.
+*/
+func PadRight(s string, padChar rune, length int) string {
+	diff := length - len([]rune(s))
+	if diff <= 0 {
+		return s
+	}
+	return s + strings.Repeat(string(padChar), diff)
+}
+
+/*
+PadToLongest suffixes each string in ss with padChar until it
+contains as many characters as the longest string in ss.
+*/
+func PadToLongest(ss []string, padChar rune) []string {
+	var longest int
+	for i := range ss {
+		length := len([]rune(ss[i]))
+		if length > longest {
+			longest = length
+		}
+	}
+	for i := range ss {
+		diff := longest - len([]rune(ss[i]))
+		ss[i] += strings.Repeat(string(padChar), diff)
+	}
+	return ss
 }
 
 /*

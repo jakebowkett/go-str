@@ -5,6 +5,33 @@ import (
 	"testing"
 )
 
+func TestNth(t *testing.T) {
+
+	cases := []struct {
+		n    int
+		s    string
+		sub  string
+		want int
+	}{
+		//   0123456789  12
+		{5, "hi hi hi hi hi", "hi", 12},
+		{5, "hi hi hi    hi", "hi", -1},
+		{1, "世界世界世界世界", "世", 0},
+		{3, "世界世界世界世界", "世", 4},
+		{-1, "世界世界世界世界", "世", 6},
+		{-2, "世界世界世界世界", "世", 4},
+		{2, "💩💩💩", "💩", 1}, // poop emoji
+		{1, "hi", "hi", 0},
+		{0, "hi", "hi", -1},
+	}
+
+	for _, c := range cases {
+		if got := Nth(c.s, c.sub, c.n); got != c.want {
+			t.Errorf("Nth(%q, %q, %d) return %d, wanted %d.", c.s, c.sub, c.n, got, c.want)
+		}
+	}
+}
+
 func TestPadLeft(t *testing.T) {
 
 	cases := []struct {
