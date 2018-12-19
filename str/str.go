@@ -10,6 +10,18 @@ import (
 )
 
 /*
+In returns true true if s is in ss.
+*/
+func In(ss []string, s string) bool {
+	for i := range ss {
+		if ss[i] == s {
+			return true
+		}
+	}
+	return false
+}
+
+/*
 Len returns the number of characters in a string rather
 than the number of bytes.
 */
@@ -22,18 +34,58 @@ Nth returns the character index of the nth instance of
 subStr in s. If n negative it will search from the end
 of the string. Nth will return -1 if the nth instance
 of subStr cannot be found or if n is 0.
+
+Note that for consistency with several functions in the
+standard library "strings" package, Nth considers the
+empty substring "" to exist between characters as well
+as at the start and end of a string. For example:
+
+	strings.LastIndex("hi", "") // 2
+	str.Nth("hi", "", -1) // 2
+
+	strings.Index("", "") // 0
+	strings.Count("", "") // 1
+	str.Nth("", "", 1) // 0
+
+	strings.Count("hi", "") // 3
+	str.Nth("hi", "", 3) // 2
+
 */
 func Nth(s, subStr string, n int) int {
+
 	if n == 0 {
 		return -1
 	}
 	if Len(subStr) > Len(s) {
 		return -1
 	}
+
+	// For consistency with the standard library's
+	// strings.Index and strings.Count we treat an
+	// empty substring as valid.
+	if subStr == "" {
+		return nthEmptyString(s, n)
+	}
+
 	if n < 0 {
 		return nthLast(s, subStr, -n)
 	}
 	return nthFirst(s, subStr, n)
+}
+
+func nthEmptyString(s string, n int) int {
+
+	rr := []rune(s)
+
+	if abs(n) > len(rr)+1 {
+		return -1
+	}
+
+	if n < 0 {
+		return (len(rr) - -n) + 1
+	}
+
+	return n - 1
 }
 
 func nthFirst(s, subStr string, n int) int {
@@ -64,7 +116,7 @@ func nthLast(s, subStr string, n int) int {
 	seen := 0
 	subLen := Len(subStr) // char len not byte len
 
-	for i := len(rr) - subLen - 1; i >= 0; i-- {
+	for i := len(rr) - subLen; i >= 0; i-- {
 		if string(rr[i:i+subLen]) == subStr {
 			seen++
 			if seen == n {

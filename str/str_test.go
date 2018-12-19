@@ -5,6 +5,29 @@ import (
 	"testing"
 )
 
+func TestIn(t *testing.T) {
+
+	cases := []struct {
+		ss   []string
+		s    string
+		want bool
+	}{
+		{[]string{"hi", "there", "yoo"}, "hi", true},
+		{[]string{"hi", "there", "yoo"}, "there", true},
+		{[]string{"hi", "there", "yoo"}, "yoo", true},
+		{[]string{"hi", "there", "yoo"}, "here", false},
+		{[]string{"世界世界", "there", "yoo"}, "世", false},
+		{[]string{"世界世界", "there", "yoo"}, "世界世界", true},
+		{[]string{"hi", "th💩ere", "yoo"}, "th💩ere", true}, // poop emoji
+	}
+
+	for _, c := range cases {
+		if got := In(c.ss, c.s); got != c.want {
+			t.Errorf("In(%v, %q) return %v, wanted %v.", c.ss, c.s, got, c.want)
+		}
+	}
+}
+
 func TestNth(t *testing.T) {
 
 	cases := []struct {
@@ -22,12 +45,38 @@ func TestNth(t *testing.T) {
 		{-2, "世界世界世界世界", "世", 4},
 		{2, "💩💩💩", "💩", 1}, // poop emoji
 		{1, "hi", "hi", 0},
+		{1, "hi", "hiiiii", -1},
 		{0, "hi", "hi", -1},
+
+		{0, "", "", -1},
+		{1, "", "", 0},
+		{2, "", "", -1},
+
+		{0, "hi", "", -1},
+		{1, "hi", "", 0},
+		{2, "hi", "", 1},
+		{3, "hi", "", 2},
+
+		{-1, "hi", "", 2},
+		{-2, "hi", "", 1},
+		{-3, "hi", "", 0},
+
+		{0, "世界世", "世", -1},
+		{1, "世界世", "世", 0},
+		{2, "世界世", "世", 2},
+		{-1, "世界世", "世", 2},
+		{-1, "heh", "h", 2},
+
+		{0, "💩💩💩", "💩", -1}, // poop emoji
+		{1, "💩💩💩", "💩", 0},  // poop emoji
+		{-1, "💩💩💩", "💩", 2}, // poop emoji
 	}
 
 	for _, c := range cases {
 		if got := Nth(c.s, c.sub, c.n); got != c.want {
-			t.Errorf("Nth(%q, %q, %d) return %d, wanted %d.", c.s, c.sub, c.n, got, c.want)
+			t.Errorf(
+				"Nth(%q, %q, %d) return %d, wanted %d.",
+				c.s, c.sub, c.n, got, c.want)
 		}
 	}
 }
