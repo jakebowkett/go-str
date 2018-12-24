@@ -10,7 +10,7 @@ import (
 )
 
 /*
-In returns true true if s is in ss.
+In returns true if s is in ss.
 */
 func In(ss []string, s string) bool {
 	for i := range ss {
