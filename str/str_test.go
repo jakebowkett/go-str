@@ -1,6 +1,7 @@
 package str
 
 import (
+	"fmt"
 	"sort"
 	"testing"
 )
@@ -26,6 +27,91 @@ func TestIn(t *testing.T) {
 			t.Errorf("In(%v, %q) return %v, wanted %v.", c.ss, c.s, got, c.want)
 		}
 	}
+}
+
+func TestSplitBefore(t *testing.T) {
+
+	cases := []struct {
+		s    string
+		sep  string
+		want []string
+	}{
+		// single char sep.
+		{"hi.yoo", ".", []string{"hi", ".yoo"}},
+		{"hi.there.yoo", ".", []string{"hi", ".there", ".yoo"}},
+
+		{"世g界世adh界", "世", []string{"", "世g界", "世adh界"}},
+
+		// Empty sep.
+		{"世g界世adh界", "", []string{"世", "g", "界", "世", "a", "d", "h", "界"}},
+
+		// Empty s.
+		{"", "hi", []string{""}},
+
+		// Empty s and sep.
+		{"", "", []string{}},
+
+		// Multi char sep.
+		{"hithingtherethingyoo", "thing", []string{"hi", "thingthere", "thingyoo"}},
+	}
+
+	for _, c := range cases {
+		if got := SplitBefore(c.s, c.sep); !strSliceEqual(got, c.want) {
+			t.Errorf(
+				"SplitBefore(%q, %q)\n"+
+					"return %v\n"+
+					"wanted %v.",
+				c.s, c.sep, got, c.want)
+		}
+	}
+}
+
+func TestSplitBeforeN(t *testing.T) {
+
+	cases := []struct {
+		s    string
+		sep  string
+		n    int
+		want []string
+	}{
+		// single char sep.
+
+		{"hi.yoo", ".", 2, []string{"hi", ".yoo"}},
+		{"hi.yoo", ".", 3, []string{"hi", ".yoo"}},
+		{"hi.yoo", ".", -1, []string{"hi", ".yoo"}},
+		{"hi.yoo", ".", 1, []string{"hi.yoo"}},
+		{"hi.there.yoo", ".", 2, []string{"hi.there", ".yoo"}},
+
+		// missing sep.
+		{"hiyoowhatup", ".", 2, []string{"hiyoowhatup"}},
+
+		// Empty sep.
+		{"世g界世adh界", "", 3, []string{"世g界世ad", "h", "界"}},
+		{"世g界世adh界", "", 50, []string{"世", "g", "界", "世", "a", "d", "h", "界"}},
+
+		// multi char sep.
+		{"hithingtherethingyoo", "thing", 2, []string{"hithingthere", "thingyoo"}},
+		{"hithingtherethingyoo", "thing", 3, []string{"hi", "thingthere", "thingyoo"}},
+		{"hithingtherethingyoo", "thing", 4, []string{"hi", "thingthere", "thingyoo"}},
+		{"hithingtherethingyoo", "thing", -1, []string{"hi", "thingthere", "thingyoo"}},
+	}
+
+	for _, c := range cases {
+		if got := SplitBeforeN(c.s, c.sep, c.n); !strSliceEqual(got, c.want) {
+			t.Errorf(
+				"SplitBeforeN(%q, %q, %d)\n"+
+					"return %v\n"+
+					"wanted %v.",
+				c.s, c.sep, c.n, quoteSlice(got), quoteSlice(c.want))
+		}
+	}
+}
+
+func quoteSlice(ss []string) []string {
+	for i := range ss {
+		ss[i] = fmt.Sprintf("%q", ss[i])
+	}
+	return ss
 }
 
 func TestNth(t *testing.T) {

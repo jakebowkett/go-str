@@ -30,8 +30,106 @@ func Len(s string) int {
 }
 
 /*
+SplitBefore mirrors the SplitAfter function in the standard
+library's strings package. It slices s into substrings before
+each instance of sep and returns a slice of those substrings.
+
+It is equivalent to SplitBeforeN where n is -1.
+*/
+func SplitBefore(s, sep string) []string {
+	return SplitBeforeN(s, sep, -1)
+}
+
+func SplitBeforeN(s, sep string, n int) []string {
+
+	var subStr []string
+
+	if sep == "" {
+		return splitBeforeEmptySep(s, n)
+	}
+
+	for i := len(s) - len(sep); i >= 0; i-- {
+
+		if len(subStr) == n-1 {
+			break
+		}
+
+		// sep can't be inside s if sep is longer
+		if len(s) < len(sep) {
+			break
+		}
+
+		// if index from the end of the string
+		// is less than sep, sep can't be there
+		if len(s)-(i+1) < len(sep) {
+			continue
+		}
+
+		if s[i:i+len(sep)] == sep {
+			subStr = append(subStr, s[i:])
+			s = s[:i]
+		}
+	}
+
+	subStr = append(subStr, s)
+	reverseSlice(subStr)
+
+	return subStr
+}
+
+func splitBeforeEmptySep(s string, n int) []string {
+
+	var subStr []string
+
+	if s == "" {
+		return subStr
+	}
+
+	if n < 0 {
+		return strings.Split(s, "")
+	}
+
+	rr := []rune(s)
+	if n > len(rr) {
+		return strings.Split(s, "")
+	}
+
+	n--
+
+	subStr = append(subStr, string(rr[0:len(rr)-n]))
+	for _, r := range rr[len(rr)-n:] {
+		subStr = append(subStr, string(r))
+	}
+
+	return subStr
+}
+
+func reverseSlice(ss []string) {
+
+	L := 0
+	R := len(ss) - 1
+
+	for {
+
+		// Base case.
+		if L >= R {
+			return
+		}
+
+		// Swap elements.
+		tmp := ss[L]
+		ss[L] = ss[R]
+		ss[R] = tmp
+
+		// Increment inwards.
+		L++
+		R--
+	}
+}
+
+/*
 Nth returns the character index of the nth instance of
-subStr in s. If n negative it will search from the end
+subStr in s. If n is negative it will search from the end
 of the string. Nth will return -1 if the nth instance
 of subStr cannot be found or if n is 0.
 
@@ -92,11 +190,10 @@ func nthFirst(s, subStr string, n int) int {
 
 	// i below is the byte position so we record
 	// what character we're on.
-	charPos := -1
-	seen := 0
+	var charPos int
+	var seen int
 
 	for i, _ := range s {
-		charPos++
 		if i+len(subStr) > len(s) {
 			return -1
 		}
@@ -106,6 +203,7 @@ func nthFirst(s, subStr string, n int) int {
 				return charPos
 			}
 		}
+		charPos++
 	}
 	return -1
 }
