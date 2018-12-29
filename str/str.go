@@ -44,6 +44,11 @@ func SplitBeforeN(s, sep string, n int) []string {
 
 	var subStr []string
 
+	// Standard library returns a nil slice when n is 0.
+	if n == 0 {
+		return subStr
+	}
+
 	if sep == "" {
 		return splitBeforeEmptySep(s, n)
 	}
@@ -54,13 +59,13 @@ func SplitBeforeN(s, sep string, n int) []string {
 			break
 		}
 
-		// sep can't be inside s if sep is longer
+		// sep can't be inside s if sep is longer.
 		if len(s) < len(sep) {
 			break
 		}
 
-		// if index from the end of the string
-		// is less than sep, sep can't be there
+		// If index from the end of the string
+		// is less than sep, sep can't be there.
 		if len(s)-(i+1) < len(sep) {
 			continue
 		}
@@ -72,7 +77,7 @@ func SplitBeforeN(s, sep string, n int) []string {
 	}
 
 	subStr = append(subStr, s)
-	reverseSlice(subStr)
+	ReverseSlice(subStr)
 
 	return subStr
 }
@@ -81,6 +86,8 @@ func splitBeforeEmptySep(s string, n int) []string {
 
 	var subStr []string
 
+	// The standard library strings package returns
+	// a zero-length non-nil slice when s is empty.
 	if s == "" {
 		return subStr
 	}
@@ -104,7 +111,15 @@ func splitBeforeEmptySep(s string, n int) []string {
 	return subStr
 }
 
-func reverseSlice(ss []string) {
+/*
+ReverseSlice reverses the strings in ss in place.
+
+	ss := []string{"hi", "how", "are", "you?"}
+	str.ReverseSlice(ss)
+	// ss is now []string{"you?", "are", "how", "hi"}
+
+*/
+func ReverseSlice(ss []string) {
 
 	L := 0
 	R := len(ss) - 1
@@ -125,6 +140,35 @@ func reverseSlice(ss []string) {
 		L++
 		R--
 	}
+}
+
+/*
+Reverse returns a new string with its characters in the reverse order.
+
+	s := str.Reverse("hello") // "olleh"
+
+*/
+func Reverse(s string) string {
+
+	rr := []rune(s)
+
+	L := 0
+	R := len(rr) - 1
+
+	for {
+
+		if L >= R {
+			return string(rr)
+		}
+
+		tmp := rr[L]
+		rr[L] = rr[R]
+		rr[R] = tmp
+
+		L++
+		R--
+	}
+
 }
 
 /*

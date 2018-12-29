@@ -74,22 +74,24 @@ func TestSplitBeforeN(t *testing.T) {
 		n    int
 		want []string
 	}{
-		// single char sep.
-
+		// Single char sep.
 		{"hi.yoo", ".", 2, []string{"hi", ".yoo"}},
 		{"hi.yoo", ".", 3, []string{"hi", ".yoo"}},
 		{"hi.yoo", ".", -1, []string{"hi", ".yoo"}},
 		{"hi.yoo", ".", 1, []string{"hi.yoo"}},
 		{"hi.there.yoo", ".", 2, []string{"hi.there", ".yoo"}},
 
-		// missing sep.
+		// Missing sep.
 		{"hiyoowhatup", ".", 2, []string{"hiyoowhatup"}},
+
+		// n == 0
+		{"hiyoowhatup", ".", 0, nil},
 
 		// Empty sep.
 		{"世g界世adh界", "", 3, []string{"世g界世ad", "h", "界"}},
 		{"世g界世adh界", "", 50, []string{"世", "g", "界", "世", "a", "d", "h", "界"}},
 
-		// multi char sep.
+		// Multi char sep.
 		{"hithingtherethingyoo", "thing", 2, []string{"hithingthere", "thingyoo"}},
 		{"hithingtherethingyoo", "thing", 3, []string{"hi", "thingthere", "thingyoo"}},
 		{"hithingtherethingyoo", "thing", 4, []string{"hi", "thingthere", "thingyoo"}},
@@ -112,6 +114,91 @@ func quoteSlice(ss []string) []string {
 		ss[i] = fmt.Sprintf("%q", ss[i])
 	}
 	return ss
+}
+
+func TestReverse(t *testing.T) {
+
+	cases := []struct {
+		s    string
+		want string
+	}{
+		// Single byte.
+		{"hello", "olleh"},
+
+		// Mutli-byte.
+		{"世g界世adh界", "界hda世界g世"},
+
+		// Two characters.
+		{"hi", "ih"},
+
+		// One character.
+		{"h", "h"},
+
+		// Empty string.
+		{"", ""},
+
+		// Single multi-byte character.
+		{"💩", "💩"}, // poop emoji
+	}
+
+	for _, c := range cases {
+		if got := Reverse(c.s); got != c.want {
+			t.Errorf(
+				"Reverse(%q)\n"+
+					"return %q\n"+
+					"wanted %q.",
+				c.s, got, c.want)
+		}
+	}
+}
+
+func TestReverseSlice(t *testing.T) {
+
+	cases := []struct {
+		ss   []string
+		want []string
+	}{
+		// Even number of elements.
+		{
+			[]string{"hi", "how", "are", "you?"},
+			[]string{"you?", "are", "how", "hi"},
+		},
+
+		// Odd number of elements.
+		{
+			[]string{"how", "are", "you?"},
+			[]string{"you?", "are", "how"},
+		},
+
+		// One element.
+		{
+			[]string{"how"},
+			[]string{"how"},
+		},
+
+		// Zero elements.
+		{
+			[]string{},
+			[]string{},
+		},
+
+		// Nil slice.
+		{
+			nil,
+			nil,
+		},
+	}
+
+	for _, c := range cases {
+		input := c.ss[:] // we copy because ReverseSlice modifies c.ss
+		if ReverseSlice(c.ss); !strSliceEqual(c.ss, c.want) {
+			t.Errorf(
+				"ReverseSlice(%v)\n"+
+					"slice is %v\n"+
+					"wanted %v.",
+				input, quoteSlice(c.ss), quoteSlice(c.want))
+		}
+	}
 }
 
 func TestNth(t *testing.T) {
