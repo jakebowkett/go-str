@@ -1,6 +1,10 @@
 /*
-Package str provides functions that handle single-
-and multi-byte character strings in a convenient way.
+Package str provides convenient functions for handling
+strings. It is designed to be useful with single or multi-
+byte character strings.
+
+Where appropriate it mirrors the behaviour of the standard
+library's strings package.
 */
 package str
 
@@ -112,7 +116,7 @@ func splitBeforeEmptySep(s string, n int) []string {
 }
 
 /*
-ReverseSlice reverses the strings in ss in place.
+ReverseSlice reverses the elements of ss in place.
 
 	ss := []string{"hi", "how", "are", "you?"}
 	str.ReverseSlice(ss)
@@ -143,9 +147,11 @@ func ReverseSlice(ss []string) {
 }
 
 /*
-Reverse returns a new string with its characters in the reverse order.
+Reverse returns a new string with its characters in
+the reverse order.
 
-	s := str.Reverse("hello") // "olleh"
+	s1 := str.Reverse("hello")       // "olleh"
+	s2 := str.Reverse("世g界世adh界") // "界hda世界g世"
 
 */
 func Reverse(s string) string {
