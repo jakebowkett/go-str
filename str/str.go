@@ -1,7 +1,7 @@
 /*
 Package str provides convenient functions for handling
-strings. It is designed to be useful with single or multi-
-byte character strings.
+strings. It is designed to be useful with strings that
+contain single or multi-byte runes.
 
 Where appropriate it mirrors the behaviour of the standard
 library's strings package.
@@ -26,7 +26,7 @@ func In(ss []string, s string) bool {
 }
 
 /*
-Len returns the number of characters in a string rather
+Len returns the number of runes in a string rather
 than the number of bytes.
 */
 func Len(s string) int {
@@ -147,7 +147,7 @@ func ReverseSlice(ss []string) {
 }
 
 /*
-Reverse returns a new string with its characters in
+Reverse returns a new string with its runes in
 the reverse order.
 
 	s1 := str.Reverse("hello")       // "olleh"
@@ -178,14 +178,14 @@ func Reverse(s string) string {
 }
 
 /*
-Nth returns the character index of the nth instance of
+Nth returns the rune index of the nth instance of
 subStr in s. If n is negative it will search from the end
 of the string. Nth will return -1 if the nth instance
 of subStr cannot be found or if n is 0.
 
 Note that for consistency with several functions in the
 standard library "strings" package, Nth considers the
-empty substring "" to exist between characters as well
+empty substring "" to exist between runes as well
 as at the start and end of a string. For example:
 
 	strings.LastIndex("hi", "") // 2
@@ -239,7 +239,7 @@ func nthEmptyString(s string, n int) int {
 func nthFirst(s, subStr string, n int) int {
 
 	// i below is the byte position so we record
-	// what character we're on.
+	// what rune we're on.
 	var charPos int
 	var seen int
 
@@ -262,7 +262,7 @@ func nthLast(s, subStr string, n int) int {
 
 	rr := []rune(s)
 	seen := 0
-	subLen := Len(subStr) // char len not byte len
+	subLen := Len(subStr) // rune len not byte len
 
 	for i := len(rr) - subLen; i >= 0; i-- {
 		if string(rr[i:i+subLen]) == subStr {
@@ -276,10 +276,10 @@ func nthLast(s, subStr string, n int) int {
 }
 
 /*
-Char returns character n (rather than byte n) in s. Negative values
+Char returns rune n (rather than byte n) in s. Negative values
 for n are treated as an offset from the end of the string. An error
 will be returned if the absolute value of n is greater than the number
-of characters in s.
+of runes in s.
 
 	s, _ := Char("Hello", 0)   // "H"
 	s, _ := Char("Hello", 1)   // "e"
@@ -294,7 +294,7 @@ func Char(s string, i int) (string, error) {
 }
 
 /*
-Chars returns a slice of all the characters (rather than bytes) in s.
+Chars returns a slice of all the runes (rather than bytes) in s.
 If s is an empty string the slice will be non-nil and zero length.
 */
 func Chars(s string) []string {
@@ -302,12 +302,12 @@ func Chars(s string) []string {
 }
 
 /*
-CharSet returns a slice of all the characters (rather than bytes) in
+CharSet returns a slice of all the runes (rather than bytes) in
 s, excluding duplicates. If s is an empty string the slice will be
 non-nil and zero length. Characters appear in the same order as they
 do in s.
 
-If fold is set to true characters of different cases will be considered
+If fold is set to true runes of different cases will be considered
 duplicates and condensed into a single lowercase character in the
 resulting slice. For example, if s were "Hi, Hello" the output with
 fold set to true would be []string{"h", "i", ",", " ", "e", "l", "o"}
@@ -318,10 +318,10 @@ func CharSet(s string, fold bool) []string {
 
 /*
 CharsByOccurrence returns an unordered OccMap where each index
-represents a single character and the number of times it appears in s.
+represents a single rune and the number of times it appears in s.
 OccMap implements sort.Interface; see OccMap for more details.
 
-If fold is set to true characters of different cases will be considered
+If fold is set to true runes of different cases will be considered
 equal and all entries in the resulting slice will be in lowercase.
 For example, "h" and "H" will each count towards an occurrence of the
 single character, "h".
@@ -351,13 +351,13 @@ func makeSet(ss []string, fold bool) []string {
 
 /*
 Slice returns a substring of s. The start and end parameters refer
-to character indices rather than byte indices. Both start and end
+to rune indices rather than byte indices. Both start and end
 may be negative, in which case they refer to the offset from the
 end of s. If start is greater than end it will wrap to the beginning
 of s and continue until end.
 
 Returns an error if start or end have an absolute value greater
-than the number of characters in s.
+than the number of runes in s.
 
 	s, _ := Slice("Hello", 1, 2)     // "e"
 	s, _ := Slice("Hello", -4, -1)   // "ell"
@@ -393,7 +393,7 @@ func abs(n int) int {
 }
 
 /*
-Capitalise returns a copy of s with its first character
+Capitalise returns a copy of s with its first rune
 converted to upper case if possible.
 */
 func Capitalise(s string) string {
@@ -406,7 +406,7 @@ func Capitalise(s string) string {
 
 /*
 PadLeft prefixes s with padChar until s contains length number
-of characters.
+of runes.
 */
 func PadLeft(s string, padChar rune, length int) string {
 	diff := length - len([]rune(s))
@@ -418,7 +418,7 @@ func PadLeft(s string, padChar rune, length int) string {
 
 /*
 PadRight suffixes s with padChar until s contains length number
-of characters.
+of runes.
 */
 func PadRight(s string, padChar rune, length int) string {
 	diff := length - len([]rune(s))
@@ -430,7 +430,7 @@ func PadRight(s string, padChar rune, length int) string {
 
 /*
 PadToLongest suffixes each string in ss with padChar until it
-contains as many characters as the longest string in ss.
+contains as many runes as the longest string in ss.
 */
 func PadToLongest(ss []string, padChar rune) []string {
 	var longest int
